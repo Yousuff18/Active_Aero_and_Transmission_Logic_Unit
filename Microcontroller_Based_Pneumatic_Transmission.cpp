@@ -22,6 +22,10 @@ unsigned long shiftStartTime = 0;
 int currentShiftPin = -1;
 int shiftStage = 0;
 
+// Button state tracking
+bool prevUpButtonState = HIGH;
+bool prevDownButtonState = HIGH;
+
 void setup() {
   // Transmission outputs
   pinMode(CLUTCH_PIN, OUTPUT);
@@ -57,14 +61,22 @@ void loop() {
     digitalWrite(AERO_UP_EXTRA_PIN, LOW);
   }
 
-  // Shift Trigger
+  // Read current button states
+  bool currentUpButtonState = digitalRead(UPSHIFT_BUTTON);
+  bool currentDownButtonState = digitalRead(DOWNSHIFT_BUTTON);
+
+  // Detect button press (edge detection: HIGH -> LOW)
   if (!shifting) {
-    if (digitalRead(UPSHIFT_BUTTON) == LOW) {
+    if (prevUpButtonState == HIGH && currentUpButtonState == LOW) {
       startShift(UPSHIFT_PIN);
-    } else if (digitalRead(DOWNSHIFT_BUTTON) == LOW) {
+    } else if (prevDownButtonState == HIGH && currentDownButtonState == LOW) {
       startShift(DOWNSHIFT_PIN);
     }
   }
+
+  // Save current button states
+  prevUpButtonState = currentUpButtonState;
+  prevDownButtonState = currentDownButtonState;
 
   // Gear Shift Sequence (Non-blocking)
   if (shifting) {
